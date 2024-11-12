@@ -4,7 +4,7 @@ export default function Header(){
     return(
         <header>
             <h1 className="text-gradient">
-            Mission  Dyslexia
+            Expression Tracker
             </h1>
         </header>
     )

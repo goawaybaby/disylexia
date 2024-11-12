@@ -53,55 +53,106 @@ const registerUser = async (req, res) => {
                 email: user.email
             }
         });
-        return res.json(user);
+        
     } catch (error) {
         console.log(error);
     }
 };
 
-const loginUser = async (req,res) =>{
+const loginUser = async (req, res) => {
     try {
-        const {email,password}=req.body;
+        const { email, password } = req.body;
 
-        const user =await User.findOne({email})
-        if(!user){
-
+        const user = await User.findOne({ email });
+        if (!user) {
             return res.json({
-                error:'you do not have an account'
-            })
+                error: 'You do not have an account'
+            });
         }
-        const match =await compareP(password,user.password)
-        if(match){
+
+        const match = await compareP(password, user.password);
+        if (match) {
             const sessionId = uuidv4();
             const loginTime = new Date();
+            // Push the new session into the user's session array
             user.sessions.push({ sessionId, loginTime });
-            await user.save();
-            jwt.sign({
-                username:user.username,
-                email: user.email,
-                id:user._id,
-                loginTime:new Date().toISOString(),
-                sessionId: user.sessionId,
-                },
-                process.env.JWT_SECRET,{},(err,token)=>{
-                    if(err)throw err;
-                    res.cookie('token',token).json(user)
-                })
+            await user.save();  // Save the user with the new session
 
-        }
-        if(!match){
+            // Sign the JWT with the correct sessionId and loginTime
+            jwt.sign(
+                {
+                    username: user.username,
+                    email: user.email,
+                    id: user._id,
+                    loginTime: loginTime.toISOString(),
+                    sessionId: sessionId, // Use the new sessionId here
+                },
+                process.env.JWT_SECRET,
+                {},
+                (err, token) => {
+                    if (err) throw err;
+                    // Send the token as a cookie and return user data as response
+                    res.cookie('token', token, { httpOnly: true }).json(user);
+                }
+            );
+        } else {
             res.json({
-                error:"incorrect password"
-            })
+                error: "Incorrect password"
+            });
         }
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
+};
+
+const getProfile =(req,res)=>{
+const {token} =req.cookies
+if(token){
+    jwt.verify(token,process.env.JWT_SECRET,{},(err,user)=>{
+        if(err) throw err;
+        console.log(user)
+        res.json(user)
+    })
+}else{
+    console.log(user)
+    res.json(null)
 }
+}
+
+const logoutUser = async (req, res) => {
+    const { token } = req.cookies;
+    
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+            if (err) return res.status(401).json({ error: 'Invalid token' });
+
+            const user = await User.findById(decoded.id);
+            if (user) {
+                
+                const lastSession = user.sessions[user.sessions.length - 1];
+                if (lastSession) {
+                    lastSession.logoutTime = new Date();
+                }
+
+                await user.save();
+
+                res.clearCookie('token');
+                return res.json({ message: 'Logged out successfully' });
+            }
+        });
+    } else {
+        return res.status(400).json({ error: 'No token found' });
+    }
+};
+
+
+
 
 module.exports = {
     test,
     registerUser,
-    loginUser
+    loginUser,
+    getProfile,
+    logoutUser
 
 };

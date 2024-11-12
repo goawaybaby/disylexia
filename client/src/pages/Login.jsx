@@ -5,27 +5,28 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
     const navigate = useNavigate();
-    const [data, setData] = useState({  // Changed `Data` to `data`
+    const [data, setData] = useState({ 
         email: '',
         password: '',
     });
 
     const loginUser = async (e) => {
         e.preventDefault();
-        console.log(data);  // Correctly logging `data`
+        console.log(data);
         
-        const { email, password } = data;  // Using `data` as defined in state
+        const { email, password } = data; 
 
         try {
             const response = await axios.post('/login', { email, password });
-            const data = response.data;  // This is response data
+            const data = response.data;
 
             if (data.error) {
                 toast.error(data.error);
             } else {
-                setData({ email: '', password: '' });  // Clear data on success
-                navigate('/');
-                toast.success('Welcome back!');
+                setData({ email: '', password: '' });
+                
+                navigate('/dashboard');
+                
             }
         } catch (error) {
             console.error(error);
@@ -42,20 +43,19 @@ export default function Login() {
                 <input
                     type="text"
                     placeholder="Enter email"
-                    value={data.email}  // Use `data` here
-                    onChange={(e) => setData({ ...data, email: e.target.value })}  // Update `data`
+                    value={data.email} 
+                    onChange={(e) => setData({ ...data, email: e.target.value })} 
                 />
                 <label>Password</label>
                 <input
                     type="password"
                     placeholder="Enter password"
-                    value={data.password}  // Use `data` here
-                    onChange={(e) => setData({ ...data, password: e.target.value })}  // Update `data`
+                    value={data.password} 
+                    onChange={(e) => setData({ ...data, password: e.target.value })} 
                 />
                 <button type="submit">Submit</button>
             </form>
         </div>
     );
-}
-
+};
 

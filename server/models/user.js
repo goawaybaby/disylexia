@@ -1,20 +1,19 @@
 const mongoose=require('mongoose')
 const {Schema}=mongoose
 
-const userSchema= new Schema({
-    username:String,
+const userSchema = new Schema({
+    username: String,
     email: {
-        type:String,
+        type: String,
         unique: true
     },
-    password:String,
+    password: String,
     sessions: [{
         sessionId: String,
-        loginTime: Date
-    }],
-    
-
-})
+        loginTime: Date,
+        logoutTime: Date 
+    }]
+});
 
 const UserModel= mongoose.model('User',userSchema);
 
