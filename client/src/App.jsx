@@ -11,9 +11,19 @@ import Dashboard from './pages/Dashboard';
 import StartScreen from './StartScreen.jsx';
 import MemoryGame from './Memorygame.jsx';
 import { UserContextProvider } from '../context/userContext';
+import SessionReport from './SessionReports.jsx'
+
 
 axios.defaults.baseURL = 'http://localhost:8000';
 axios.defaults.withCredentials = true;
+
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 function App() {
   const [gameStage, setGameStage] = useState('start');
@@ -21,14 +31,12 @@ function App() {
   const [sessionData, setSessionData] = useState({});
 
   useEffect(() => {
-    // Set up any necessary initialization logic (e.g., axios setup)
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
   }, []);
 
-  const handleMemoryGame = () => setGameStage('memoryGame');
-  const handleFinishMemoryGame = (memoryGameScore) => {
-    setSessionData((prev) => ({ ...prev, memoryGameScore }));
-    setGameStage('interface');
-  };
 
   return (
     <UserContextProvider>
@@ -42,14 +50,11 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/memorygame" element={<MemoryGame />} />
+        <Route path="/session-report" element={<SessionReport />} />
+        <Route path="/startscreen" element={<StartScreen />} />
       </Routes>
 
-      {/* Conditional Rendering based on gameStage */}
-      <div>
-        {gameStage === 'start' && <StartScreen onStartQuiz={handleMemoryGame} />}
-        {gameStage === 'memoryGame' && <MemoryGame onFinish={handleFinishMemoryGame} />}
-        {gameStage === 'interface' && <AdminReport sessionData={sessionData} />}
-      </div>
     </UserContextProvider>
   );
 }

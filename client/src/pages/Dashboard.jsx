@@ -2,15 +2,20 @@ import { useContext } from 'react';
 import { UserContext } from '../../context/userContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import StartScreen from '../StartScreen';
+
+
 
 export default function Dashboard() {
-    const { user, setUser } = useContext(UserContext);
+    const { user, isLoggedIn, logout } = useContext(UserContext);
+
     const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
 
             await axios.post('/logout');
+            Cookies.remove('token');
             setUser(null); 
             navigate('/login');
 
@@ -24,8 +29,13 @@ export default function Dashboard() {
     return (
         <div>
             <h2>Dashboard</h2>
+            
             {!!user && <h2>Hi, {user.username}!</h2>}
-            <button onClick={handleLogout}>Logout</button>
+            <br />
+            {isLoggedIn && (
+                <button onClick={logout}>Logout</button>
+            )}
+            <button onClick={(navigate('/startscreen'))}></button>
         </div>
     );
 }

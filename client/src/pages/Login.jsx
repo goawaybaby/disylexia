@@ -13,18 +13,18 @@ export default function Login() {
     const loginUser = async (e) => {
         e.preventDefault();
         console.log(data);
-        
+
         const { email, password } = data; 
 
         try {
-            const response = await axios.post('/login', { email, password });
-            const data = response.data;
+            const response = await axios.post('/login', { email, password }, { withCredentials: true });
 
-            if (data.error) {
-                toast.error(data.error);
+            const responseData = response.data;
+
+            if (responseData.error) {
+                toast.error(responseData.error);
             } else {
                 setData({ email: '', password: '' });
-                
                 navigate('/dashboard');
                 
             }
@@ -46,6 +46,8 @@ export default function Login() {
                     value={data.email} 
                     onChange={(e) => setData({ ...data, email: e.target.value })} 
                 />
+                <br/>
+                <br/>
                 <label>Password</label>
                 <input
                     type="password"
@@ -54,6 +56,7 @@ export default function Login() {
                     onChange={(e) => setData({ ...data, password: e.target.value })} 
                 />
                 <button type="submit">Submit</button>
+                
             </form>
         </div>
     );

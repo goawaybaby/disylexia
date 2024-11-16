@@ -1,26 +1,19 @@
-import React from 'react'
-import data from '../sample.json';
+import React, { useContext } from 'react';
+import { UserContext } from '../../context/userContext';
 
-export default function Home() {
+const Home = () => {
+  const { isLoggedIn, logout } = useContext(UserContext);
 
-  const StartScreen = ({ onStartQuiz, onAdminLogin }) => {
-    const [username, setUsername] = useState('');
-    const [adminId, setAdminId] = useState('');
-    const [adminPassword, setAdminPassword] = useState('');
-  
-    const handlePlayGame = () => {
-      const username = prompt("Please enter your username:");
-      onStartQuiz(username);
-    };
-  
-    
-  }
   return (
     <div>
-      <h2>
-      Home
-      </h2>
-      
+      <h1>Welcome to the Home Page</h1>
+      <br />
+      {isLoggedIn && (
+        <button onClick={logout}>Logout</button>
+      )}
     </div>
-  )
-}
+  );
+};
+
+export default Home;
+
