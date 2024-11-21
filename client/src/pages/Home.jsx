@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { UserContext } from '../../context/userContext';
+import { UserContext } from '../pages/userContext';
 
 const Home = () => {
   const { isLoggedIn, logout } = useContext(UserContext);
@@ -8,12 +8,15 @@ const Home = () => {
     <div>
       <h1>Welcome to the Home Page</h1>
       <br />
-      {isLoggedIn && (
+      {isLoggedIn ? (
         <button onClick={logout}>Logout</button>
+      ) : (
+        <p>You are not logged in.</p>
       )}
     </div>
   );
 };
+
 
 export default Home;
 

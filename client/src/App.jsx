@@ -7,10 +7,10 @@ import Navbar from '../src/components/Navbar';
 import Home from '../src/pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import Dashboard from '../src/pages/Dashboard';
 import StartScreen from './StartScreen.jsx';
 import MemoryGame from './Memorygame.jsx';
-import { UserContextProvider } from '../context/userContext';
+import { UserContextProvider } from '../src/pages/userContext';
 import SessionReport from './SessionReports.jsx'
 
 

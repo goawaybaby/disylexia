@@ -25,7 +25,7 @@ export default function Login() {
                 toast.error(responseData.error);
             } else {
                 setData({ email: '', password: '' });
-                navigate('/dashboard');
+                navigate('/startscreen');
                 
             }
         } catch (error) {

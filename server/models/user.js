@@ -10,13 +10,15 @@ const userSchema = new Schema({
         loginTime: Date,
         logoutTime: Date,
         scores: [{
-          score: Number,
-          date: { type: Date, default: Date.now }
-        }]
+            score: Number,
+            date: { type: Date, default: Date.now }
+        }],
+        images: [String] // Array of image paths
     }]
 });
 
 const UserModel = mongoose.model('User', userSchema);
 
 module.exports = UserModel;
+
 

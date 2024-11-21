@@ -1,113 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './emorygame.css'; // Include your styles if any
 
-const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A6', '#F3FF33', '#33FFF6', '#A6FF33', '#33A6FF'];
-
-function MemoryGame({ onFinish }) {
-  const [grid, setGrid] = useState(Array(16).fill(null));
-  const [selectedBoxes, setSelectedBoxes] = useState([]);
+const MemoryGame = () => {
+  const [boxes, setBoxes] = useState([]);
+  const [openBoxes, setOpenBoxes] = useState([]);
+  const [matchedBoxes, setMatchedBoxes] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
-  const [attemptsLeft, setAttemptsLeft] = useState(15);
-  const [matchedPairs, setMatchedPairs] = useState([]);
-  const [revealed, setRevealed] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    initializeGrid();
-    const revealTimeout = setTimeout(() => {
-      setRevealed(false);
-    }, 5000);
-    return () => clearTimeout(revealTimeout);
+    initializeGame();
   }, []);
 
-  function initializeGrid() {
-    let tempGrid = Array(16).fill(null);
-    let pairs = [...colors, ...colors];
-    pairs = pairs.sort(() => Math.random() - 0.5);
+  const initializeGame = () => {
+    const shuffledBoxes = shuffleArray([
+      ...Array.from({ length: 8 }, (_, i) => i),
+      ...Array.from({ length: 8 }, (_, i) => i),
+    ]);
+    setBoxes(shuffledBoxes);
+    setOpenBoxes([]);
+    setMatchedBoxes([]);
+    setGameOver(false);
+    setScore(0);
+  };
 
-    pairs.forEach((color, index) => {
-      tempGrid[index] = color;
-    });
+  const shuffleArray = (array) => {
+    return array.sort(() => Math.random() - 0.5);
+  };
 
-    setGrid(tempGrid);
-  }
+  const handleBoxClick = (index) => {
+    if (openBoxes.length < 2 && !openBoxes.includes(index) && !matchedBoxes.includes(index)) {
+      const newOpenBoxes = [...openBoxes, index];
+      setOpenBoxes(newOpenBoxes);
 
-  function handleBoxClick(index) {
-    if (selectedBoxes.length < 2 && !selectedBoxes.includes(index) && !matchedPairs.includes(grid[index])) {
-      const newSelected = [...selectedBoxes, index];
-      setSelectedBoxes(newSelected);
-      if (newSelected.length === 2) {
-        checkMatch(newSelected);
+      if (newOpenBoxes.length === 2) {
+        const [first, second] = newOpenBoxes;
+        if (boxes[first] === boxes[second]) {
+          setMatchedBoxes([...matchedBoxes, first, second]);
+          setScore(score + 10);
+        }
+
+        setTimeout(() => {
+          setOpenBoxes([]);
+          if (matchedBoxes.length + 2 === boxes.length) {
+            setGameOver(true);
+            saveGameScore();
+          }
+        }, 1000);
       }
     }
-  }
+  };
 
-  async function checkMatch(newSelected) {
-    const [first, second] = newSelected;
-
-    if (grid[first] === grid[second]) {
-      setMatchedPairs([...matchedPairs, grid[first]]);
-      setScore(score + 1);
-      setSelectedBoxes([]);
-    } else {
-      setTimeout(() => setSelectedBoxes([]), 1000);
-      
-    }
-
-    const newAttemptsLeft = attemptsLeft - 1;
-    setAttemptsLeft(newAttemptsLeft);
-
-    if (newAttemptsLeft === 0) {
-      alert('Game Over! Out of attempts.');
-      await finishGame();
-    } else if (score + 1 === 8) {
-      alert('Congratulations! You win!');
-      await finishGame();
-    }
-  }
-
-  async function finishGame() {
-    await sendScoreToBackend(score);
-    navigate('/session-report', { state: { memoryGameScore: score } });
-  }
-
-  async function sendScoreToBackend(finalScore) {
+  const saveGameScore = async () => {
     try {
-      await axios.post('/api/save-score', { score: finalScore }, { withCredentials: true });
-      console.log('Score saved successfully');
+      const response = await axios.post('http://localhost:8000/api/save-score', { score });
+      console.log('Game score saved:', response.data);
     } catch (error) {
-      console.error('Failed to save score:', error);
+      console.error('Failed to save game score:', error);
     }
-  }
+  };
 
   return (
-    <div>
+    <div className="memory-game">
       <h1>Memory Game</h1>
-      <h2>Score: {score}</h2>
-      <h2>Attempts Left: {attemptsLeft}</h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap', width: '320px', margin: '0 auto' }}>
-        {grid.map((color, index) => (
+      <div className="score">Score: {score}</div>
+      <div className="grid">
+        {boxes.map((value, index) => (
           <div
             key={index}
-            className="box"
-            style={{
-              width: '70px',
-              height: '70px',
-              margin: '5px',
-              backgroundColor: revealed || selectedBoxes.includes(index) || matchedPairs.includes(color)
-                ? color
-                : '#ccc',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s',
-            }}
+            className={`box ${openBoxes.includes(index) || matchedBoxes.includes(index) ? 'open' : ''}`}
             onClick={() => handleBoxClick(index)}
-          ></div>
+          >
+            {(openBoxes.includes(index) || matchedBoxes.includes(index)) && value}
+          </div>
         ))}
       </div>
+      {gameOver && (
+        <div className="game-over">
+          <h2>Game Over!</h2>
+          <p>Your final score: {score}</p>
+          <button onClick={initializeGame}>Play Again</button>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default MemoryGame;
